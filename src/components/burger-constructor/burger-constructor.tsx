@@ -1,4 +1,4 @@
-import { FC } from 'react';
+import { FC, useEffect } from 'react';
 import { TConstructorIngredient } from '@utils-types';
 import { BurgerConstructorUI } from '@ui';
 import { useDispatch, useSelector } from '../../services/store';
@@ -19,6 +19,14 @@ export const BurgerConstructor: FC = () => {
   const isAuthenticated = useSelector(
     (state: RootState) => state.user.isAuthenticated
   );
+
+  // Очищаем конструктор сразу после успешного создания заказа
+  useEffect(() => {
+    // Если заказ создан (orderModalData не null) и загрузка завершена (orderRequest false)
+    if (orderModalData && !orderRequest) {
+      dispatch(clearConstructor());
+    }
+  }, [orderModalData, orderRequest, dispatch]);
 
   const price = (() => {
     if (!constructorItems) return 0;
@@ -54,7 +62,7 @@ export const BurgerConstructor: FC = () => {
   const closeOrderModal = () => {
     if (orderRequest) return;
     dispatch(clearOrder());
-    dispatch(clearConstructor());
+    // Конструктор уже очищен через useEffect, дополнительно не очищаем
   };
 
   return (

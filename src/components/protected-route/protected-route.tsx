@@ -16,22 +16,26 @@ export const ProtectedRoute = ({
   const isAuthenticated = useSelector(
     (state: RootState) => state.user.isAuthenticated
   );
-  const isLoading = useSelector(
-    (state: RootState) => state.user.loginUserRequest
+  const isAuthChecked = useSelector(
+    (state: RootState) => state.user.isAuthChecked
   );
   const location = useLocation();
 
-  if (isLoading) {
+  if (!isAuthChecked) {
     return <Preloader />;
   }
 
-  if (!onlyUnAuth && !isAuthenticated) {
-    return <Navigate to='/login' state={{ from: location }} replace />;
+  // Если роут только для неавторизованных, а пользователь авторизован
+  if (onlyUnAuth && isAuthenticated) {
+    // Передаем location.state?.from для редиректа на исходную страницу
+    const from = location.state?.from?.pathname || '/';
+    return <Navigate to={from} replace />;
   }
 
-  if (onlyUnAuth && isAuthenticated) {
-    const from = location.state?.from || '/';
-    return <Navigate to={from} replace />;
+  // Если роут требует авторизации, а пользователь не авторизован
+  if (!onlyUnAuth && !isAuthenticated) {
+    // Сохраняем текущий путь для редиректа после входа
+    return <Navigate to='/login' state={{ from: location }} replace />;
   }
 
   return <>{children}</>;

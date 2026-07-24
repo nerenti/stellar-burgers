@@ -20,6 +20,7 @@ export const IngredientsCategory = forwardRef<
 
     const { bun, ingredients: items } = constructorItems;
 
+    // Считаем количество ингредиентов в конструкторе
     if (items && Array.isArray(items)) {
       items.forEach((ingredient: TIngredient) => {
         if (!counters[ingredient._id]) counters[ingredient._id] = 0;
@@ -27,7 +28,9 @@ export const IngredientsCategory = forwardRef<
       });
     }
 
+    // Добавляем булку (она всегда 2)
     if (bun) counters[bun._id] = 2;
+
     return counters;
   }, [constructorItems]);
 

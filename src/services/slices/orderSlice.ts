@@ -48,6 +48,7 @@ const orderSlice = createSlice({
       .addCase(createOrder.fulfilled, (state, action) => {
         state.isLoading = false;
         state.order = { ...action.payload, ingredients: [] };
+        // Не очищаем конструктор здесь, только сохраняем заказ
       })
       .addCase(createOrder.rejected, (state, action) => {
         state.isLoading = false;
@@ -63,7 +64,7 @@ const orderSlice = createSlice({
       })
       .addCase(getOrderByNumber.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.error.message || 'Ошибка создания заказа';
+        state.error = action.error.message || 'Ошибка получения заказа';
       });
   }
 });

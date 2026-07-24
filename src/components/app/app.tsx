@@ -16,7 +16,9 @@ import { ProtectedRoute } from '../protected-route';
 import { useDispatch, useSelector } from '../../services/store';
 import { RootState } from '../../services/store';
 import { fetchIngredients } from '../../services/slices/ingredientsSlice';
+import { getUser } from '../../services/slices/userSlice';
 import { useEffect } from 'react';
+import { Preloader } from '@ui';
 
 const App = () => {
   const location = useLocation();
@@ -30,7 +32,21 @@ const App = () => {
   const isIngredientsLoading = useSelector(
     (state: RootState) => state.ingredients.isLoading
   );
+  const isAuthChecked = useSelector(
+    (state: RootState) => state.user.isAuthChecked
+  );
+  const isAuthenticated = useSelector(
+    (state: RootState) => state.user.isAuthenticated
+  );
 
+  // Проверка авторизации при загрузке приложения
+  useEffect(() => {
+    if (!isAuthChecked) {
+      dispatch(getUser());
+    }
+  }, [dispatch, isAuthChecked]);
+
+  // Загрузка ингредиентов
   useEffect(() => {
     if (!ingredients.length) {
       dispatch(fetchIngredients());
@@ -40,6 +56,16 @@ const App = () => {
   const handleModalClose = () => {
     navigate(-1);
   };
+
+  // Показываем прелоадер пока проверяется авторизация
+  if (!isAuthChecked) {
+    return (
+      <div className={styles.app}>
+        <AppHeader />
+        <Preloader />
+      </div>
+    );
+  }
 
   return (
     <div className={styles.app}>

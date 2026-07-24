@@ -1,4 +1,4 @@
-import { FC, useState, useEffect } from 'react';
+import { FC, useMemo } from 'react';
 import { Preloader } from '../ui/preloader';
 import { IngredientDetailsUI } from '../ui/ingredient-details';
 import { useSelector } from '../../services/store';
@@ -10,17 +10,14 @@ export const IngredientDetails: FC = () => {
   const ingredients = useSelector(
     (state: RootState) => state.ingredients.ingredients
   );
-  const [ingredientData, setIngredientData] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const isLoading = useSelector(
+    (state: RootState) => state.ingredients.isLoading
+  );
 
-  useEffect(() => {
-    if (id && ingredients.length) {
-      const found = ingredients.find((item) => item._id === id);
-      if (found) {
-        setIngredientData(found);
-      }
-      setIsLoading(false);
-    }
+  // Используем useMemo для получения ингредиента из Redux
+  const ingredientData = useMemo(() => {
+    if (!id || !ingredients.length) return null;
+    return ingredients.find((item) => item._id === id) || null;
   }, [id, ingredients]);
 
   if (isLoading || !ingredientData) {

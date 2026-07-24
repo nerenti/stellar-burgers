@@ -1,38 +1,38 @@
-import { FC, useMemo, useEffect, useState } from 'react';
+import { FC, useMemo, useEffect } from 'react';
 import { Preloader } from '../ui/preloader';
 import { OrderInfoUI } from '../ui/order-info';
 import { TIngredient } from '@utils-types';
-import { useSelector } from '../../services/store';
+import { useSelector, useDispatch } from '../../services/store';
 import { RootState } from '../../services/store';
 import { useParams } from 'react-router-dom';
-import { getOrderByNumberApi } from '@api';
+import { getOrderByNumber } from '../../services/slices/orderSlice';
 
 export const OrderInfo: FC = () => {
   const { number } = useParams<{ number: string }>();
+  const dispatch = useDispatch();
   const ingredients = useSelector(
     (state: RootState) => state.ingredients.ingredients
   );
   const feedOrders = useSelector((state: RootState) => state.feed.orders);
-  const [orderData, setOrderData] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const orderData = useSelector((state: RootState) => state.order.order);
+  const isLoading = useSelector((state: RootState) => state.order.isLoading);
 
   useEffect(() => {
-    const order = feedOrders.find((o) => o.number === Number(number));
+    if (number) {
+      // Сначала ищем заказ в ленте
+      const orderFromFeed = feedOrders.find((o) => o.number === Number(number));
 
-    if (order) {
-      setOrderData(order);
-      setIsLoading(false);
-    } else if (number) {
-      getOrderByNumberApi(Number(number))
-        .then((res) => {
-          if (res.orders && res.orders.length > 0) {
-            setOrderData(res.orders[0]);
-          }
-          setIsLoading(false);
-        })
-        .catch(() => setIsLoading(false));
+      if (orderFromFeed) {
+        // Если нашли в ленте, используем его
+        // Но в orderSlice нет экшена для установки order из ленты,
+        // поэтому используем getOrderByNumber для получения полных данных
+        dispatch(getOrderByNumber(Number(number)));
+      } else {
+        // Если не нашли в ленте, запрашиваем с сервера
+        dispatch(getOrderByNumber(Number(number)));
+      }
     }
-  }, [number, feedOrders]);
+  }, [dispatch, number, feedOrders]);
 
   const orderInfo = useMemo(() => {
     if (!orderData || !ingredients.length) return null;

@@ -14,17 +14,13 @@ export const BurgerIngredient: FC<TBurgerIngredientProps> = memo(
     const handleAdd = () => {
       if (!ingredient) return;
 
-      console.log('Adding ingredient:', ingredient.type, ingredient.name);
-
       if (ingredient.type === 'bun') {
-        console.log('Setting bun');
         dispatch(setBun(ingredient));
       } else {
         const newIngredient = {
           ...ingredient,
           id: uuidv4()
         };
-        console.log('Adding ingredient to list:', newIngredient);
         dispatch(addIngredient(newIngredient));
       }
     };

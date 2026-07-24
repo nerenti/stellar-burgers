@@ -3,12 +3,13 @@ import { RegisterUI } from '@ui-pages';
 import { useDispatch, useSelector } from '../../services/store';
 import { RootState } from '../../services/store';
 import { registerUser } from '../../services/slices/userSlice';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { AnyAction } from '@reduxjs/toolkit';
 
 export const Register: FC = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
   const error = useSelector((state: RootState) => state.user.loginUserError);
   const [userName, setUserName] = useState('');
   const [email, setEmail] = useState('');
@@ -19,7 +20,9 @@ export const Register: FC = () => {
     dispatch(registerUser({ name: userName, email, password })).then(
       (result: AnyAction) => {
         if (result.meta?.requestStatus === 'fulfilled') {
-          navigate('/');
+          // Получаем путь, с которого пришел пользователь, или "/" по умолчанию
+          const from = location.state?.from?.pathname || '/';
+          navigate(from, { replace: true });
         }
       }
     );

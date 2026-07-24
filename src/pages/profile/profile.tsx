@@ -2,7 +2,7 @@ import { ProfileUI } from '@ui-pages';
 import { FC, SyntheticEvent, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from '../../services/store';
 import { RootState } from '../../services/store';
-import { updateUser, getUser } from '../../services/slices/userSlice';
+import { updateUser } from '../../services/slices/userSlice';
 import { Preloader } from '@ui';
 
 export const Profile: FC = () => {
@@ -12,11 +12,7 @@ export const Profile: FC = () => {
     (state: RootState) => state.user.loginUserRequest
   );
 
-  useEffect(() => {
-    if (!user) {
-      dispatch(getUser());
-    }
-  }, [dispatch, user]);
+  // Убираем getUser, так как он уже вызывается в App
 
   const [formValue, setFormValue] = useState({
     name: user?.name || '',
