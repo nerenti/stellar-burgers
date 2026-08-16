@@ -1,3 +1,4 @@
+// burger-constructor.tsx
 import React, { FC } from 'react';
 import {
   Button,
@@ -25,9 +26,15 @@ export const BurgerConstructorUI: FC<BurgerConstructorUIProps> = ({
   const { bun, ingredients } = constructorItems;
 
   return (
-    <section className={styles.burger_constructor}>
+    <section
+      className={styles.burger_constructor}
+      data-testid='burger-constructor'
+    >
       {bun ? (
-        <div className={`${styles.element} mb-4 mr-4`}>
+        <div
+          className={`${styles.element} mb-4 mr-4`}
+          data-testid='constructor-bun'
+        >
           <ConstructorElement
             type='top'
             isLocked
@@ -39,11 +46,16 @@ export const BurgerConstructorUI: FC<BurgerConstructorUIProps> = ({
       ) : (
         <div
           className={`${styles.noBuns} ${styles.noBunsTop} ml-8 mb-4 mr-5 text text_type_main-default`}
+          data-testid='constructor-empty-bun'
         >
           Выберите булки
         </div>
       )}
-      <ul className={styles.elements}>
+
+      <ul
+        className={styles.elements}
+        data-testid='constructor-ingredients-list'
+      >
         {ingredients && ingredients.length > 0 ? (
           ingredients.map((item: TConstructorIngredient, index: number) => (
             <BurgerConstructorElement
@@ -56,13 +68,18 @@ export const BurgerConstructorUI: FC<BurgerConstructorUIProps> = ({
         ) : (
           <div
             className={`${styles.noBuns} ml-8 mb-4 mr-5 text text_type_main-default`}
+            data-testid='constructor-empty-ingredients'
           >
             Выберите начинку
           </div>
         )}
       </ul>
+
       {bun ? (
-        <div className={`${styles.element} mt-4 mr-4`}>
+        <div
+          className={`${styles.element} mt-4 mr-4`}
+          data-testid='constructor-bun-bottom'
+        >
           <ConstructorElement
             type='bottom'
             isLocked
@@ -74,13 +91,17 @@ export const BurgerConstructorUI: FC<BurgerConstructorUIProps> = ({
       ) : (
         <div
           className={`${styles.noBuns} ${styles.noBunsBottom} ml-8 mb-4 mr-5 text text_type_main-default`}
+          data-testid='constructor-empty-bun-bottom'
         >
           Выберите булки
         </div>
       )}
+
       <div className={`${styles.total} mt-10 mr-4`}>
         <div className={`${styles.cost} mr-10`}>
-          <p className={`text ${styles.text} mr-2`}>{price || 0}</p>
+          <p className={`text ${styles.text} mr-2`} data-testid='total-price'>
+            {price || 0}
+          </p>
           <CurrencyIcon type='primary' />
         </div>
         <Button
@@ -90,6 +111,7 @@ export const BurgerConstructorUI: FC<BurgerConstructorUIProps> = ({
           children='Оформить заказ'
           onClick={onOrderClick}
           disabled={!bun || orderRequest}
+          data-testid='order-button'
         />
       </div>
 
@@ -100,7 +122,7 @@ export const BurgerConstructorUI: FC<BurgerConstructorUIProps> = ({
       )}
 
       {orderModalData && !orderRequest && (
-        <Modal onClose={closeOrderModal} title={''}>
+        <Modal onClose={closeOrderModal} title={''} data-testid='order-modal'>
           <OrderDetailsUI orderNumber={orderModalData.number} />
         </Modal>
       )}
