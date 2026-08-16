@@ -5,6 +5,6 @@ export const ModalOverlayUI = ({ onClick }: { onClick: () => void }) => (
   <div
     className={styles.overlay}
     onClick={onClick}
-    data-testid='modal-overlay' // ← Добавлен data-testid для оверлея
+    data-testid='modal-overlay'
   />
 );

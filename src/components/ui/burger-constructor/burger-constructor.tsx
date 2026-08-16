@@ -28,7 +28,7 @@ export const BurgerConstructorUI: FC<BurgerConstructorUIProps> = ({
   return (
     <section
       className={styles.burger_constructor}
-      data-testid='burger-constructor' // ← ДОБАВИТЬ ЭТО!
+      data-testid='burger-constructor'
     >
       {bun ? (
         <div

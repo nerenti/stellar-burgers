@@ -1,10 +1,6 @@
 // tests/constructor.pl.tsx
 import { test, expect } from '@playwright/test';
 
-// ============================================
-// ГЛОБАЛЬНАЯ НАСТРОЙКА HAR ДЛЯ ВСЕХ ТЕСТОВ
-// ============================================
-
 test.beforeEach(async ({ page }) => {
   await page.routeFromHAR('./tests/hars/app.har', {
     url: '**/api/ingredients',
@@ -22,10 +18,6 @@ test.beforeEach(async ({ page }) => {
   });
 });
 
-// ============================================
-// БЛОК 1: Добавление ингредиентов в конструктор
-// ============================================
-
 test.describe('Добавление ингредиентов в конструктор', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
@@ -42,8 +34,13 @@ test.describe('Добавление ингредиентов в конструк
 
     await bunCard.getByRole('button', { name: 'Добавить' }).click();
 
-    await expect(page.getByTestId('constructor-bun')).toBeVisible();
-    await expect(page.getByTestId('constructor-bun-bottom')).toBeVisible();
+    await expect(
+      page.getByTestId('constructor-bun')
+    ).toContainText('Краторная булка N-200i');
+
+    await expect(
+      page.getByTestId('constructor-bun-bottom')
+    ).toContainText('Краторная булка N-200i');
   });
 
   test('должен добавить начинку в конструктор', async ({ page }) => {
@@ -98,14 +95,10 @@ test.describe('Добавление ингредиентов в конструк
 
     await expect(page.getByTestId('constructor-ingredients-list')).toContainText('Биокотлета из марсианской Магнолии');
     await expect(page.getByTestId('constructor-ingredients-list')).toContainText('Соус Spicy-X');
-    await expect(page.getByTestId('constructor-bun')).toBeVisible();
-    await expect(page.getByTestId('constructor-bun-bottom')).toBeVisible();
+    await expect(page.getByTestId('constructor-bun')).toContainText('Краторная булка N-200i');
+    await expect(page.getByTestId('constructor-bun-bottom')).toContainText('Краторная булка N-200i');
   });
 });
-
-// ============================================
-// БЛОК 2: Модальное окно ингредиента
-// ============================================
 
 test.describe('Модальное окно ингредиента', () => {
   test.beforeEach(async ({ page }) => {
@@ -169,43 +162,8 @@ test.describe('Модальное окно ингредиента', () => {
   });
 });
 
-// ============================================
-// БЛОК 3: Создание заказа
-// ============================================
-
 test.describe('Создание заказа', () => {
   test.beforeEach(async ({ page, context }) => {
-    // ✅ Мокаем /api/orders на 200 (обход проблемы с HAR)
-    await page.route('**/api/orders', async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({
-          success: true,
-          order: {
-            number: 12345,
-            name: 'Test Burger'
-          }
-        })
-      });
-    });
-
-    // ✅ Мокаем /auth/user на 200
-    await page.route('**/api/auth/user', async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({
-          success: true,
-          user: {
-            email: 'test@example.com',
-            name: 'Test User'
-          }
-        })
-      });
-    });
-
-    // ✅ Устанавливаем токены
     await context.addCookies([
       {
         name: 'accessToken',
@@ -228,7 +186,7 @@ test.describe('Создание заказа', () => {
     await page.waitForSelector('text="Краторная булка N-200i"', { timeout: 10000 });
   });
 
-  test('должен создать заказ и показать номер заказа', async ({ page }) => {
+  test('должен создать заказ, показать номер и очистить конструктор', async ({ page }) => {
     const burgerConstructor = page.getByTestId('burger-constructor');
 
     const bunCard = page
@@ -245,12 +203,10 @@ test.describe('Создание заказа', () => {
 
     const orderButton = page.getByTestId('order-button');
 
-    // Добавляем ингредиенты
     await bunCard.getByRole('button', { name: 'Добавить' }).click();
     await mainCard.getByRole('button', { name: 'Добавить' }).click();
     await sauceCard.getByRole('button', { name: 'Добавить' }).click();
 
-    // Проверяем, что ингредиенты добавились
     await expect(
       burgerConstructor.getByText('Краторная булка N-200i (верх)')
     ).toBeVisible();
@@ -263,48 +219,21 @@ test.describe('Создание заказа', () => {
       burgerConstructor.getByText('Биокотлета из марсианской Магнолии')
     ).toBeVisible();
 
-    // ✅ Проверяем, что кнопка активна
     await expect(orderButton).toBeEnabled({ timeout: 5000 });
-
     await orderButton.click();
 
     const modal = page.getByTestId('modal');
     await expect(modal).toBeVisible({ timeout: 10000 });
     
     const orderNumber = page.getByTestId('order-number');
-    await expect(orderNumber).toBeVisible({ timeout: 10000 });
+    await expect(orderNumber).toBeVisible();
+    
+    const orderNumberText = await orderNumber.textContent();
+    const orderNumberValue = parseInt(orderNumberText || '0', 10);
+    expect(orderNumberValue).toBeGreaterThan(0);
 
     await expect(burgerConstructor.getByText('Выберите булки')).toHaveCount(2);
     await expect(burgerConstructor.getByText('Выберите начинку')).toBeVisible();
-
-    await modal.getByTestId('modal-close').click();
-    await expect(modal).toBeHidden();
-  });
-
-  test('должен очистить конструктор после создания заказа', async ({ page }) => {
-    const burgerConstructor = page.getByTestId('burger-constructor');
-    const orderButton = page.getByTestId('order-button');
-
-    const bunCard = page
-      .locator('li')
-      .filter({ hasText: 'Краторная булка N-200i' });
-    
-    const mainCard = page
-      .locator('li')
-      .filter({ hasText: 'Биокотлета из марсианской Магнолии' });
-
-    await bunCard.getByRole('button', { name: 'Добавить' }).click();
-    await mainCard.getByRole('button', { name: 'Добавить' }).click();
-
-    await expect(
-      burgerConstructor.getByText('Краторная булка N-200i (верх)')
-    ).toBeVisible();
-
-    await expect(orderButton).toBeEnabled({ timeout: 5000 });
-    await orderButton.click();
-
-    const modal = page.getByTestId('modal');
-    await expect(modal).toBeVisible({ timeout: 10000 });
 
     await modal.getByTestId('modal-close').click();
     await expect(modal).toBeHidden();
@@ -316,9 +245,6 @@ test.describe('Создание заказа', () => {
     await expect(
       burgerConstructor.getByText('Биокотлета из марсианской Магнолии')
     ).toHaveCount(0);
-    
-    await expect(burgerConstructor.getByText('Выберите булки')).toHaveCount(2);
-    await expect(burgerConstructor.getByText('Выберите начинку')).toBeVisible();
   });
 
   test('должен показать ошибку при попытке создать заказ без булки', async ({ page }) => {
@@ -333,10 +259,6 @@ test.describe('Создание заказа', () => {
     await expect(orderButton).toBeDisabled();
   });
 });
-
-// ============================================
-// БЛОК 4: Вспомогательные проверки
-// ============================================
 
 test.describe('Вспомогательные проверки', () => {
   test.beforeEach(async ({ page }) => {
